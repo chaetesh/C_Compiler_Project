@@ -1,0 +1,4 @@
+*****************************Identifier Table******************************
+
+Content	Description	Type Code	Identifier Type	Line Number
+

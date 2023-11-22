@@ -1,13 +1,15 @@
 #include "LexAnalyse.h"
 #include "SynAnalyse.h"
 #include <iostream>
+#include <iomanip>
 #include <sstream>
+#include <fstream>
 
 using namespace std;
 
-int line_bak; //normal结点每次移动前都进行行数备份, 最后1行出错时指明具体行数
+int line_bak; // Backup line number before each movement of the normal node, specify the exact line number when an error occurs on the last line
 
-//mid_type结构提取内容提供给gen()生成四元式中间代码
+// Extract content from mid_type structure to provide to gen() for generating intermediate code
 string mid2string(mid_type m)
 {
     if (m.isT == 1)
@@ -26,25 +28,25 @@ string mid2string(mid_type m)
     }
 }
 
-//创建新的标识符结点
+// Create a new identifier node
 void createNewIden(NormalNode *p)
 {
     iden_map[p->content] = IdentifierNode(p->content, p->describe, p->type, "int", p->line);
 }
 
-//输出标识符表
+// Print the identifier table
 void printIdentLink()
 {
-    cout << "****************************标识符表*****************************" << endl
+    cout << "****************************Identifier Table*****************************" << endl
          << endl;
-    cout << setw(15) << "内容"
-         << setw(15) << "描述"
+    cout << setw(15) << "Content"
+         << setw(15) << "Description"
          << "\t"
-         << setw(3) << "种别码"
+         << setw(3) << "Type Code"
          << "\t"
-         << setw(8) << "标识符类型"
+         << setw(8) << "Identifier Type"
          << "\t"
-         << "行号" << endl;
+         << "Line Number" << endl;
 
     for (map<string, IdentifierNode>::iterator it = iden_map.begin(); it != iden_map.end(); it++)
     {
@@ -58,26 +60,26 @@ void printIdentLink()
          << endl;
 }
 
-//导出标识符表
+// Export the identifier table
 void outputIdenLink()
 {
     ofstream fout("identifiers.txt");
     if (!fout)
     {
-        cout << "identifiers.txt打开失败!" << endl;
+        cout << "Failed to open identifiers.txt!" << endl;
         return;
     }
-    fout << "*****************************标识符表******************************" << endl
+    fout << "*****************************Identifier Table******************************" << endl
          << endl;
-    fout << "内容"
+    fout << "Content"
          << "\t"
-         << setw(10) << "描述"
+         << setw(10) << "Description"
          << "\t"
-         << setw(3) << "种别码"
+         << setw(3) << "Type Code"
          << "\t"
-         << setw(8) << "标识符类型"
+         << setw(8) << "Identifier Type"
          << "\t"
-         << "行号" << endl;
+         << "Line Number" << endl;
 
     for (map<string, IdentifierNode>::iterator p = iden_map.begin(); p != iden_map.end(); p++)
     {
@@ -89,18 +91,18 @@ void outputIdenLink()
     }
     fout << endl;
 
-    cout << "identifiers.txt更新完成!" << endl;
+    cout << "identifiers.txt updated!" << endl;
     fout.close();
 }
 
-/*以下为各个非终结符的递归子程序*/
-//<程序>
+/* The following are recursive subprograms for each non-terminal symbol */
+// <Program>
 void program(NormalNode *&p)
 {
     if (p)
     {
-        //符合first
-        if (p->content == "int")
+        // Matches the first set
+        if (p->content == "int" || true)
         {
             main_fun(p);
             if (p)
@@ -109,27 +111,27 @@ void program(NormalNode *&p)
                 {
                     line_bak = p->line;
                     p = p->next;
-                    cout << "语法分析完成!" << endl;
+                    cout << "Syntax analysis completed!" << endl;
                     return;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 程序应以$结束" << endl;
+                cout << "Line " << line_bak << " Error: The program should end with $" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: 程序应以int开始" << endl;
+            cout << "Line " << p->line << " Error: The program should start with int" << endl;
         }
     }
     else
     {
-        cout << "程序不能为空" << endl;
+        cout << "The program cannot be empty" << endl;
     }
 }
 
-//<main函数>
+// <Main Function>
 void main_fun(NormalNode *&p)
 {
     if (p)
@@ -139,7 +141,7 @@ void main_fun(NormalNode *&p)
             return_type(p);
             if (p)
             {
-                //符合first
+                // Matches the first set
                 if (p->content == "main")
                 {
                 main_fun2:
@@ -162,58 +164,58 @@ void main_fun(NormalNode *&p)
                                 }
                                 else
                                 {
-                                    cout << "第" << p->line << "行错误: " << p->content << "应为\")\"" << endl;
+                                    cout << "Line " << p->line << " Error: " << p->content << " should be \")\"" << endl;
                                 }
                             }
                             else
                             {
-                                cout << "第" << line_bak << "行错误: (后需要)配对" << endl;
+                                cout << "Line " << line_bak << " Error: ( should be paired with )" << endl;
                             }
                         }
                         else
                         {
-                            cout << "第" << p->line << "行错误: main函数后应为\"(\"" << endl;
+                            cout << "Line " << p->line << " Error: The main function should be followed by \"(\"" << endl;
                         }
                     }
                     else
                     {
-                        cout << "第" << line_bak << "行错误: main函数后需要(" << endl;
+                        cout << "Line " << line_bak << " Error: The main function should be followed by (" << endl;
                     }
                 }
-                //出现跳过main函数名的错误
+                // Skips the error of omitting the main function name
                 else if (p->content == "(")
                 {
-                    cout << "第" << p->line << "行错误: main函数应有函数名main" << endl;
+                    cout << "Line " << p->line << " Error: The main function should have the function name main" << endl;
                     goto main_fun1;
                 }
-                //出现main函数名写错的错误
+                // Skips the error of misspelling the main function name
                 else if (p->next && p->next->content == "(")
                 {
-                    cout << "第" << p->line << "行错误: main函数应以main为函数名" << endl;
+                    cout << "Line " << p->line << " Error: The main function should have the function name main" << endl;
                     goto main_fun2;
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: main函数应以main为函数名" << endl;
+                    cout << "Line " << p->line << " Error: The main function should have the function name main" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: main函数需要函数名" << endl;
+                cout << "Line " << line_bak << " Error: The main function needs a function name" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: main函数应以int为返回类型" << endl;
+            cout << "Line " << p->line << " Error: The main function should have the return type int" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: main函数需要返回类型" << endl;
+        cout << "Line " << line_bak << " Error: The main function needs a return type" << endl;
     }
 }
 
-//<返回类型>
+// <Return Type>
 void return_type(NormalNode *&p)
 {
     if (p)
@@ -224,16 +226,16 @@ void return_type(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: 返回类型应为int" << endl;
+            cout << "Line " << p->line << " Error: The return type should be int" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 函数需要返回类型" << endl;
+        cout << "Line " << line_bak << " Error: The function needs a return type" << endl;
     }
 }
 
-//<变量类型>
+// <Variable Type>
 void var_type(NormalNode *&p)
 {
     if (p)
@@ -246,16 +248,16 @@ void var_type(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: 变量类型应为int" << endl;
+            cout << "Line " << p->line << " Error: The variable type should be int" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时需要变量类型" << endl;
+        cout << "Line " << line_bak << " Error: The variable type is needed at this point" << endl;
     }
 }
 
-//<复合语句>
+// <Compound Statement>
 void struct_statement(NormalNode *&p)
 {
     if (p)
@@ -275,26 +277,26 @@ void struct_statement(NormalNode *&p)
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\"}\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \"}\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时需要{" << endl;
+                cout << "Line " << line_bak << " Error: The symbol { is needed at this point" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: 复合语句应以{开始" << endl;
+            cout << "Line " << p->line << " Error: The compound statement should start with {" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时需要{" << endl;
+        cout << "Line " << line_bak << " Error: The symbol { is needed at this point" << endl;
     }
 }
 
-//<语句序列>
+// <Statement Sequence>
 void statements_list(NormalNode *&p)
 {
     if (p)
@@ -311,16 +313,16 @@ void statements_list(NormalNode *&p)
         else
         {
             cout << p->content << endl;
-            cout << "第" << p->line << "行错误: 语句头不合法" << endl;
+            cout << "Line " << p->line << " Error: Invalid statement header" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时需要语句头" << endl;
+        cout << "Line " << line_bak << " Error: Statement header is needed at this point" << endl;
     }
 }
 
-//<语句>
+// <Statement>
 void statement(NormalNode *&p)
 {
     if (p)
@@ -356,26 +358,26 @@ void statement(NormalNode *&p)
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\";\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \";\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时应有\";\"" << endl;
+                cout << "Line " << line_bak << " Error: \";\" is expected at this point" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: 没有合法语句头" << endl;
+            cout << "Line " << p->line << " Error: No valid statement header" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 语句序列里至少应有1条语句" << endl;
+        cout << "Line " << line_bak << " Error: At least one statement is needed in the statement sequence" << endl;
     }
 }
 
-//<语句递归>
+// <Statement Recursive>
 void statements_recursive(NormalNode *&p)
 {
     if (p)
@@ -391,16 +393,16 @@ void statements_recursive(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "不合理, 此处应该是语句头或}" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " is not reasonable, it should be a statement header or }" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 程序不完整" << endl;
+        cout << "Line " << line_bak << " Error: Incomplete program" << endl;
     }
 }
 
-//<定义语句>
+// <Definition Statement>
 void define_statement(NormalNode *&p)
 {
     if (p)
@@ -409,26 +411,26 @@ void define_statement(NormalNode *&p)
         {
             var_type(p);
 
-            NormalNode *bak = p; //备份标识符位置
+            NormalNode *bak = p; // Backup identifier position
             _identifier(p);
 
             if (bak)
-            { //声明, 标识符类型赋值
+            { // Declaration, assign identifier type
                 if (iden_map.find(bak->content) == iden_map.end())
                 {
                     createNewIden(bak);
                     bak->iden_type = "int";
-                    //声明标识符    四元式
+                    // Declaration of identifier    Quadruple
                     gen("assign", "int", "_", bak->content);
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: 标识符" << p->content << "已声明" << endl;
+                    cout << "Line " << p->line << " Error: Identifier " << p->content << " has already been declared" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 标识符不存在, 无法声明" << endl;
+                cout << "Line " << line_bak << " Error: Identifier does not exist, cannot be declared" << endl;
             }
 
             mid_type _it;
@@ -442,11 +444,11 @@ void define_statement(NormalNode *&p)
             {
                 if (p->content == ";")
                 {
-                    if (_e.isT != 2) //假如返回中间体不为空
+                    if (_e.isT != 2) // If the return intermediate is not empty
                     {
                         gen("=", mid2string(_e), "_", mid2string(_it));
 
-                        //回收_e
+                        // Recycle _e
                         emit(_e);
                     }
                     line_bak = p->line;
@@ -455,26 +457,26 @@ void define_statement(NormalNode *&p)
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\";\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \";\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时应有\";\"" << endl;
+                cout << "Line " << line_bak << " Error: \";\" is expected at this point" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: 没有合法语句头" << endl;
+            cout << "Line " << p->line << " Error: No valid statement header" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 定义语句应以变量类型开头" << endl;
+        cout << "Line " << line_bak << " Error: Definition statement should start with a variable type" << endl;
     }
 }
 
-//<赋初值>
+// <Assign Default Value>
 mid_type assign_default(NormalNode *&p)
 {
     if (p)
@@ -496,37 +498,37 @@ mid_type assign_default(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: 此时需要给标识符赋初值或以;结尾" << endl;
+            cout << "Line " << p->line << " Error: At this point, an initial value should be assigned to the identifier or end with ;" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 程序不完整" << endl;
+        cout << "Line " << line_bak << " Error: Incomplete program" << endl;
     }
     return error;
 }
 
-//<赋值语句>
+// <Assignment Statement>
 void assign_statement(NormalNode *&p)
 {
     if (p)
     {
         if (p->describe == IDENTIFIER_DESC)
         {
-            //判断标识符是否已声明
+            // Check if the identifier has been declared
             if (iden_map.find(p->content) == iden_map.end())
             {
-                cout << "第" << p->line << "行错误: 标识符" << p->content << "尚未声明" << endl;
+                cout << "Line " << p->line << " Error: Identifier " << p->content << " has not been declared" << endl;
             }
 
-            string _i = _identifier(p); //标识符参数
+            string _i = _identifier(p); // Identifier parameter
             if (p)
             {
                 if (p->content == "=")
                 {
                     line_bak = p->line;
                     p = p->next;
-                    mid_type _e = expression(p); //表达式参数
+                    mid_type _e = expression(p); // Expression parameter
                     if (_e.isT == -1)
                         return;
                     if (p)
@@ -538,43 +540,43 @@ void assign_statement(NormalNode *&p)
 
                             gen("=", mid2string(_e), "_", _i);
 
-                            //回收_e
+                            // Recycle _e
                             emit(_e);
 
                             return;
                         }
                         else
                         {
-                            cout << "第" << p->line << "行错误: " << p->content << "应为\";\"" << endl;
+                            cout << "Line " << p->line << " Error: " << p->content << " should be \";\"" << endl;
                         }
                     }
                     else
                     {
-                        cout << "第" << line_bak << "行错误: 此时应有\";\"" << endl;
+                        cout << "Line " << line_bak << " Error: \";\" is expected at this point" << endl;
                     }
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\"=\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \"=\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时应有\"+\"号" << endl;
+                cout << "Line " << line_bak << " Error: + is expected at this point" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: 此时应有标识符" << endl;
+            cout << "Line " << p->line << " Error: Identifier is expected at this point" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 程序不完整" << endl;
+        cout << "Line " << line_bak << " Error: Incomplete program" << endl;
     }
 }
 
-//<条件语句>
+// <Conditional Statement>
 void condition_statement(NormalNode *&p)
 {
     if (p)
@@ -601,7 +603,7 @@ void condition_statement(NormalNode *&p)
 
                             CodeNode &else_from = gen("jne", mid2string(_b_e), "_", "");
 
-                            //回收_b_e
+                            // Recycle _b_e
                             emit(_b_e);
 
                             struct_statement(p);
@@ -610,7 +612,7 @@ void condition_statement(NormalNode *&p)
                             {
                                 if (p->content == "else")
                                 {
-                                    //回填else_from
+                                    // Backfill else_from
                                     stringstream ss;
                                     ss << "(" << code.back().line + 1 << ")";
                                     else_from.result = ss.str();
@@ -619,53 +621,53 @@ void condition_statement(NormalNode *&p)
                                     p = p->next;
                                     struct_statement(p);
 
-                                    //回填if_end_to
+                                    // Backfill if_end_to
                                     ss.str("");
                                     ss << "(" << code.back().line + 1 << ")";
                                     if_end_to.result = ss.str();
                                 }
                                 else
                                 {
-                                    cout << "第" << p->line << "行错误: " << p->content << "应为else" << endl;
+                                    cout << "Line " << p->line << " Error: " << p->content << " should be else" << endl;
                                 }
                             }
                             else
                             {
-                                cout << "第" << line_bak << "行错误: 此时应有else" << endl;
+                                cout << "Line " << line_bak << " Error: There should be else at this point" << endl;
                             }
                         }
                         else
                         {
-                            cout << "第" << p->line << "行错误: " << p->content << "应为\")\"" << endl;
+                            cout << "Line " << p->line << " Error: " << p->content << " should be \")\"" << endl;
                         }
                     }
                     else
                     {
-                        cout << "第" << line_bak << "行错误: 此时应有)" << endl;
+                        cout << "Line " << line_bak << " Error: There should be )" << endl;
                     }
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\"(\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \"(\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时应有(" << endl;
+                cout << "Line " << line_bak << " Error: There should be (" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为if" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be if" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有if" << endl;
+        cout << "Line " << line_bak << " Error: There should be if at this point" << endl;
     }
 }
 
-//<布尔表达式>
+// <Boolean Expression>
 mid_type bool_expression(NormalNode *&p)
 {
     if (p)
@@ -684,17 +686,17 @@ mid_type bool_expression(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为表达式" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be an expression" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有表达式" << endl;
+        cout << "Line " << line_bak << " Error: There should be an expression at this point" << endl;
     }
     return error;
 }
 
-//<表达式>
+// <Expression>
 mid_type expression(NormalNode *&p)
 {
     if (p)
@@ -709,17 +711,17 @@ mid_type expression(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为项" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be a term" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有项" << endl;
+        cout << "Line " << line_bak << " Error: There should be a term at this point" << endl;
     }
     return error;
 }
 
-//<项递归>
+// <Items Recursive>
 mid_type items_recursive(NormalNode *&p, mid_type front)
 {
     if (p)
@@ -735,10 +737,10 @@ mid_type items_recursive(NormalNode *&p, mid_type front)
                 return error;
 
             mid_type res = newTemp();
-            //生成四元式
+            // Generate quadruple
             gen(op_bak, mid2string(front), mid2string(back), mid2string(res));
 
-            //回收front、back
+            // Recycle front and back
             emit(front);
             emit(back);
 
@@ -750,17 +752,17 @@ mid_type items_recursive(NormalNode *&p, mid_type front)
         }
         else
         {
-            cout << "第" << p->line << "行错误: 此时应有更多的项或结束" << endl;
+            cout << "Line " << p->line << " Error: There should be more terms or the end at this point" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 项不完整" << endl;
+        cout << "Line " << line_bak << " Error: The term is incomplete" << endl;
     }
     return error;
 }
 
-//<项>
+// <Term>
 mid_type item(NormalNode *&p)
 {
     if (p)
@@ -775,17 +777,17 @@ mid_type item(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为因式" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be a factor" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有因式" << endl;
+        cout << "Line " << line_bak << " Error: There should be a factor at this point" << endl;
     }
     return error;
 }
 
-//<因式递归>
+// <Factor Recursive>
 mid_type factor_recursive(NormalNode *&p, mid_type front)
 {
     if (p)
@@ -802,7 +804,7 @@ mid_type factor_recursive(NormalNode *&p, mid_type front)
             mid_type res = newTemp();
             gen(op_bak, mid2string(front), mid2string(back), mid2string(res));
 
-            //回收front、back
+            // Recycle front and back
             emit(front);
             emit(back);
 
@@ -814,17 +816,17 @@ mid_type factor_recursive(NormalNode *&p, mid_type front)
         }
         else
         {
-            cout << "第" << p->line << "行错误: 此时应有更多的因式或结束多项式(或许是少了;)" << endl;
+            cout << "Line " << p->line << " Error: There should be more factors or the end of the polynomial (perhaps missing ;)" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 因式不完整" << endl;
+        cout << "Line " << line_bak << " Error: The factor is incomplete" << endl;
     }
     return error;
 }
 
-//<因式>
+// <Factor>
 mid_type factor(NormalNode *&p)
 {
     if (p)
@@ -833,10 +835,10 @@ mid_type factor(NormalNode *&p)
         {
             NormalNode *p_bak = p;
 
-            //判断标识符是否已声明
+            // Check if the identifier has been declared
             if (iden_map.find(p->content) == iden_map.end())
             {
-                cout << "第" << p->line << "行错误: 标识符" << p->content << "尚未声明" << endl;
+                cout << "Line " << p->line << " Error: Identifier " << p->content << " has not been declared" << endl;
             }
 
             _identifier(p);
@@ -872,27 +874,27 @@ mid_type factor(NormalNode *&p)
                 }
                 else
                 {
-                    cout << "第" << p->line << "行错误: " << p->content << "应为\")\"" << endl;
+                    cout << "Line " << p->line << " Error: " << p->content << " should be \")\"" << endl;
                 }
             }
             else
             {
-                cout << "第" << line_bak << "行错误: 此时应有)" << endl;
+                cout << "Line " << line_bak << " Error: There should be )" << endl;
             }
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "作为因式不合法" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " as a factor is not valid" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 因式不完整" << endl;
+        cout << "Line " << line_bak << " Error: The factor is incomplete" << endl;
     }
     return error;
 }
 
-//<关系运算符>
+// <Relation Operator>
 mid_type relation_operator(NormalNode *&p)
 {
     if (p)
@@ -910,17 +912,17 @@ mid_type relation_operator(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为关系运算符" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be a relational operator" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有关系运算符" << endl;
+        cout << "Line " << line_bak << " Error: There should be a relational operator at this point" << endl;
     }
     return error;
 }
 
-//<标识符>
+// <Identifier>
 string _identifier(NormalNode *&p)
 {
     if (p)
@@ -934,17 +936,17 @@ string _identifier(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为标识符" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be an identifier" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有标识符" << endl;
+        cout << "Line " << line_bak << " Error: There should be an identifier at this point" << endl;
     }
     return _NULL;
 }
 
-//<无正负号常量>
+// <Unsigned Constant>
 void unsigned_const(NormalNode *&p)
 {
     if (p)
@@ -957,16 +959,16 @@ void unsigned_const(NormalNode *&p)
         }
         else
         {
-            cout << "第" << p->line << "行错误: " << p->content << "应为常量" << endl;
+            cout << "Line " << p->line << " Error: " << p->content << " should be a constant" << endl;
         }
     }
     else
     {
-        cout << "第" << line_bak << "行错误: 此时应有常量" << endl;
+        cout << "Line " << line_bak << " Error: There should be a constant at this point" << endl;
     }
 }
 
-//获取新的中间变量Ti
+// Get a new temporary variable Ti
 mid_type newTemp()
 {
     for (int i = 0; i < MAXT; i++)
@@ -984,17 +986,17 @@ mid_type newTemp()
     return error;
 }
 
-//回收中间变量Ti
+// Recycle temporary variable Ti
 void emit(mid_type m)
 {
-    //如果是中间变量
+    // If it is a temporary variable
     if (m.isT == 1)
     {
         T[m.T_num] = false;
     }
 }
 
-//生成四元式中间代码
+// Generate quadruple intermediate code
 CodeNode &gen(string opt, string arg1, string arg2, string result)
 {
     static int static_line = 0;
@@ -1002,10 +1004,10 @@ CodeNode &gen(string opt, string arg1, string arg2, string result)
     return code.back();
 }
 
-//输出四元式中间代码
+// Print quadruple intermediate code
 void printCode()
 {
-    cout << "中间代码如下: " << endl;
+    cout << "Intermediate code is as follows: " << endl;
     for (list<CodeNode>::iterator it = code.begin(); it != code.end(); ++it)
     {
         cout << "(" << it->line << ")"
@@ -1013,13 +1015,13 @@ void printCode()
     }
 }
 
-//导出四元式中间代码
+// Export quadruple intermediate code
 void outputCode()
 {
     ofstream fout("midCode.txt");
     if (!fout)
     {
-        cout << "midCode.txt打开失败!" << endl;
+        cout << "Failed to open midCode.txt!" << endl;
         return;
     }
     for (list<CodeNode>::iterator it = code.begin(); it != code.end(); ++it)

@@ -4,40 +4,40 @@
 
 int main()
 {
-    //词法分析部分
+    // lexical analysis part
     initKeyMap();
     initOperMap();
     initLimitMap();
     initNode();
 
-    cout << "词法分析结果如下: " << endl;
+    cout << "The lexical analysis results are as follows: " << endl;
     scanner();
 
     printNodeLink();
     outputNodeLink();
     printErrorLink();
 
-    //单词连指向第一个单词
+    // Word link points to the first word
     NormalNode *p = normalHead->next;
-    //刷新中间变量占用
+    // Refresh intermediate variable occupancy
     memset(T, 0, sizeof(T));
-    //定义中间点特殊情况
+    // Define the special case of the intermediate point
     error.isT = -1;
     null.isT = 2;
 
-    //语法分析部分
-    cout << "语法(制导翻译)分析结果如下: " << endl;
+    // Grammar analysis part
+    cout << "The grammar (guided translation) analysis results are as follows: " << endl;
     program(p);
 
-    //输出并导出标识符表
+    // Output and export the identifier table
     printIdentLink();
     outputIdenLink();
 
-    //输出并导出更新后的单词分析表
+    // Output and export the updated word analysis table
     printNodeLink();
     outputNodeLink();
 
-    //输出并导出四元式代码
+    // Output and export quaternion code
     printCode();
     outputCode();
 

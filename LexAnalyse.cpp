@@ -8,7 +8,7 @@
 
 using namespace std;
 
-//初始化保留字字典
+// Initialize the reserved word dictionary
 void initKeyMap()
 {
     keyMap.clear();
@@ -19,7 +19,7 @@ void initKeyMap()
     keyMap["else"] = ELSE;
 }
 
-//初始化运算符字典
+// Initialize operator dictionary
 void initOperMap()
 {
     operMap.clear();
@@ -36,7 +36,7 @@ void initOperMap()
     operMap["="] = ASSIGN;
 }
 
-//初始化限制符字典
+// Initialize limiter dictionary
 void initLimitMap()
 {
     limitMap["{"] = LEFT_BOUNDER;
@@ -46,7 +46,7 @@ void initLimitMap()
     limitMap[";"] = SEMICOLON;
 }
 
-//初始化结点
+// Initialize node
 void initNode()
 {
     normalHead = new NormalNode();
@@ -63,10 +63,10 @@ void initNode()
     errorHead->line = -1;
     errorHead->next = NULL;
 
-    cout << "初始化单词结点、错误结点完毕" << endl;
+    cout << "Initialization of word node and error node completed" << endl;
 }
 
-//插入一个结点
+// Insert a node
 void createNewNode(string content, string descirbe, int type, int line)
 {
     NormalNode *p = normalHead;
@@ -87,7 +87,7 @@ void createNewNode(string content, string descirbe, int type, int line)
     p->next = temp;
 }
 
-//插入一个错误结点
+// Insert an error node
 void createNewError(string content, string descirbe, int type, int line)
 {
     ErrorNode *p = errorHead;
@@ -105,19 +105,19 @@ void createNewError(string content, string descirbe, int type, int line)
     p->next = temp;
 }
 
-//输出结点信息
+// Output node information
 void printNodeLink()
 {
-    cout << "*****************************分析表******************************" << endl
+    cout << "**********************************Analysis table*************** ***************" << endl
          << endl;
     cout << setw(15) << "内容"
-         << setw(15) << "描述"
+         << setw(15) << "Description"
          << "\t"
-         << setw(3) << "种别码"
+         << setw(3) << "Category code"
          << "\t"
-         << setw(8) << "标识符类型"
+         << setw(8) << "identifier type"
          << "\t"
-         << "行号" << endl;
+         << "line number" << endl;
     NormalNode *p = normalHead;
     p = p->next;
     while (p)
@@ -133,26 +133,26 @@ void printNodeLink()
     cout << endl;
 }
 
-//导出结点信息
+// Export node information
 void outputNodeLink()
 {
     ofstream fout("words.txt");
     if (!fout)
     {
-        cout << "words.txt打开失败!" << endl;
+        cout << "Failed to open words.txt!" << endl;
         return;
     }
-    fout << "*****************************分析表******************************" << endl
+    fout << "**********************************Analysis table*************** ***************" << endl
          << endl;
-    fout << "内容"
+    fout << "content"
          << "\t"
-         << setw(10) << "描述"
+         << setw(10) << "Description"
          << "\t"
-         << setw(3) << "种别码"
+         << setw(3) << "Category code"
          << "\t"
-         << setw(8) << "标识符类型"
+         << setw(8) << "identifier type"
          << "\t"
-         << "行号" << endl;
+         << "line number" << endl;
     NormalNode *p = normalHead;
     p = p->next;
     while (p)
@@ -167,20 +167,20 @@ void outputNodeLink()
     }
     fout << endl;
 
-    cout << "words.txt更新完成!" << endl;
+    cout << "Words.txt update completed!" << endl;
     fout.close();
 }
 
-//输出错误结点信息
+// Output error node information
 void printErrorLink()
 {
-    cout << "*****************************错误表******************************" << endl
+    cout << "************************************Error table*************** ***************" << endl
          << endl;
-    cout << setw(15) << "内容" << setw(15) << "描述"
+    cout << setw(15) << "content" << setw(15) << "description"
          << "\t"
-         << "类型"
+         << "type"
          << "\t"
-         << "行号" << endl;
+         << "line number" << endl;
     ErrorNode *p = errorHead;
     p = p->next;
     while (p)
@@ -192,23 +192,23 @@ void printErrorLink()
          << endl;
 }
 
-//单词扫描
+// word scan
 void scanner()
 {
     string filename;
     string word;
     int i;
-    int line = 1; //行数
+    int line = 1; // number of lines
 
     fstream fin("test.txt", ios::in);
     if (!fin)
     {
-        cout << "打开文件失败！" << endl;
+        cout << "Failed to open file!" << endl;
         return;
     }
     else
     {
-        cout << "打开文件成功！" << endl;
+        cout << "Open file successfully!" << endl;
     }
 
     char ch;
@@ -217,7 +217,7 @@ void scanner()
     {
         i = 0;
         word.clear();
-        //以字母开头, 处理关键字或者标识符
+        // Start with a letter, handle keywords or identifiers
         if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))
         {
             while ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))
@@ -226,13 +226,13 @@ void scanner()
                 fin.get(ch);
             }
 
-            //如果是保留字
+            // If it is a reserved word
             map<string, int>::iterator it = keyMap.find(word);
             if (it != keyMap.end())
             {
                 createNewNode(word, KEY_DESC, it->second, line);
             }
-            //如果是标识符
+            // If it is an identifier
             else
             {
                 // int addr_tmp = createNewIden(word, IDENTIFIER_DESC, IDENTIFIER, -1, line);
@@ -240,7 +240,7 @@ void scanner()
             }
             fin.seekg(-1, ios::cur);
         }
-        //以数字开头
+        // Start with a number
         else if (ch >= '0' && ch <= '9')
         {
             while (ch >= '0' && ch <= '9')
@@ -367,7 +367,7 @@ void scanner()
     fin.close();
 }
 
-//回收结点链与错误链
+// Recycle node chain and error chain
 void clear()
 {
     while (normalHead)

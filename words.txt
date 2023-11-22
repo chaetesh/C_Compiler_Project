@@ -1,0 +1,14 @@
+**********************************Analysis table*************** ***************
+
+content	Description	Category code	identifier type	line number
+include	identifier	  5	        		1
+o	identifier	  5	        		1
+int	Reserved Word	  1	        		2
+n	identifier	  5	        		2
+printf	identifier	  5	        		3
+ello	identifier	  5	        		3
+rld	identifier	  5	        		3
+return	Reserved Word	  2	        		4
+;	limit mark	 21	        		4
+}	limit mark	 20	        		5
+
